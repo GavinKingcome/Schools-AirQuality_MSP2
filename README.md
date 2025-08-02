@@ -1,7 +1,7 @@
 # Schools-AirQuality_MSP2
-# Schools Air Quality Monitor - MSP2
+# A Schools Air Quality Monitor for MSP2
 
-An interactive web application that provides real-time air quality monitoring for early years schools (nursery and Primary) within the Camberwell, south east London, catchment. Users can click on school locations on an interactive map to view current pollution levels and air quality data sourced from the London Air Quality Network (LAQN).
+An interactive web application that provides real-time air quality monitoring for early years schools (nursery and primary) within the Camberwell, south east London, catchment. Users can click on school locations on an interactive map to view current pollution levels and air quality data sourced from the London Air Quality Network (LAQN).
 
 ## Project Overview
 
