@@ -1,25 +1,25 @@
 body {
   margin: 0;
   padding: 20px;
-  font-family: Arial, sans-serif;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   height: 100vh;
   display: flex;
   flex-direction: column;
 }
 header {
-    text-align: center;
-    margin-bottom: 20px;
+  text-align: center;
+  margin-bottom: 20px;
 }
 header h1 {
-    margin: 0 0 15px 0;
-    color: #555; 
+  margin: 0 0 15px 0;
+  color: #555;
 }
 
 header h2 {
-    margin: 0;
-    color: #666;  /* Medium grey for instructions */
-    font-size: 1.3em;
-    font-weight: 400;
+  margin: 0;
+  color: #666; /* Medium grey for instructions */
+  font-size: 1.3em;
+  font-weight: 400;
 }
 
 #map {
