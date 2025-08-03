@@ -1,22 +1,40 @@
 body {
+  margin: 0;
+  padding: 20px;
+  font-family: Arial, sans-serif;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+header {
+    text-align: center;
+    margin-bottom: 20px;
+}
+header h1 {
+    margin: 0 0 15px 0;
+    color: #555; 
+}
+
+header h2 {
     margin: 0;
-    padding: 20px;
-    font-family: Arial, sans-serif;
+    color: #666;  /* Medium grey for instructions */
+    font-size: 1.3em;
+    font-weight: 400;
 }
 
 #map {
-    height: 500px;
-    width: 100%;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  height: 80vh;
+  width: 100%;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .leaflet-popup-content h3 {
-    margin: 0 0 10px 0;
-    color: #333;
+  margin: 0 0 10px 0;
+  color: #333;
 }
 
 .leaflet-popup-content p {
-    margin: 5px 0;
-    color: #666;
+  margin: 5px 0;
+  color: #666;
 }
