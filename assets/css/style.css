@@ -1,0 +1,22 @@
+body {
+    margin: 0;
+    padding: 20px;
+    font-family: Arial, sans-serif;
+}
+
+#map {
+    height: 500px;
+    width: 100%;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.leaflet-popup-content h3 {
+    margin: 0 0 10px 0;
+    color: #333;
+}
+
+.leaflet-popup-content p {
+    margin: 5px 0;
+    color: #666;
+}
