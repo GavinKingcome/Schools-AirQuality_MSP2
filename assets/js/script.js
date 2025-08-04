@@ -1,12 +1,10 @@
 // Your Mapbox access token
-const MAPBOX_TOKEN =
-  "pk.eyJ1IjoiZ2F2aW5raW5nY29tZSIsImEiOiJjbWR2amlyOTEwN3NoMmtzNzZtNXFlM3dhIn0.FJhUkI7d1lCFa4LsJQdQUw";
-
-// OpenWeather API key
-const OPENWEATHER_API_KEY = 'fffc8fd6ade17f3ed079d7cb70a1eddd';
+// Get API keys from config
+const MAPBOX_TOKEN = CONFIG.MAPBOX_TOKEN;
+const OPENWEATHER_API_KEY = CONFIG.OPENWEATHER_API_KEY;
 
 // Initialize map centered on Camberwell
-const map = L.map("map").setView([51.4749, -0.0875], 13);
+const map = L.map("map").setView([51.4749, -0.0875], 15);
 
 // Add tile layer
 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
@@ -37,26 +35,28 @@ const geocodeAddress = async (address) => {
 // Fetch air quality data from OpenWeather API
 const fetchAirQualityData = async (lat, lng) => {
   try {
-    const response = await fetch(`https://api.openweathermap.org/data/2.5/air_pollution?lat=${lat}&lon=${lng}&appid=${OPENWEATHER_API_KEY}`);
+    const response = await fetch(
+      `https://api.openweathermap.org/data/2.5/air_pollution?lat=${lat}&lon=${lng}&appid=${OPENWEATHER_API_KEY}`
+    );
     const data = await response.json();
-    
+
     if (data && data.list && data.list[0]) {
       const pol = data.list[0];
       const aqiMap = {
         1: "Good",
-        2: "Fair", 
+        2: "Fair",
         3: "Moderate",
         4: "Poor",
-        5: "Very Poor"
+        5: "Very Poor",
       };
-      
+
       return {
         aqi: pol.main.aqi,
         aqiText: aqiMap[pol.main.aqi],
         pm25: pol.components.pm2_5,
         no2: pol.components.no2,
         pm10: pol.components.pm10,
-        o3: pol.components.o3
+        o3: pol.components.o3,
       };
     }
     return null;
@@ -73,7 +73,7 @@ const addSchoolWithFullAddress = async (school) => {
 
   if (coords) {
     const marker = L.marker([coords.lat, coords.lng]).addTo(map);
-    
+
     // Initial popup content
     marker.bindPopup(`
       <h3>${school.name}</h3>
@@ -84,7 +84,7 @@ const addSchoolWithFullAddress = async (school) => {
 
     // Fetch and display air quality data
     const airQuality = await fetchAirQualityData(coords.lat, coords.lng);
-    
+
     if (airQuality) {
       marker.setPopupContent(`
         <h3>${school.name}</h3>
@@ -157,4 +157,3 @@ const camberwellSchools = [
 camberwellSchools.forEach((school) => {
   addSchoolWithFullAddress(school);
 });
-
