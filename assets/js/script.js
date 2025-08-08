@@ -134,13 +134,45 @@ const fetchAirQualityData = async (lat, lng) => {
   }
 };
 
-// ADD this helper function for batch geocoding:
+// ADD function for batch geocoding:
 const addSchoolWithFullAddress = (school) => {
   const fullAddress = `${school.name}, ${school.address}, ${school.postcode}, London, UK`;
   return fullAddress;
 };
 
-// ADD: School search functionality
+const createFooter = () => {
+  const footer = document.createElement("div");
+  footer.style.cssText = `
+    position: absolute;
+    bottom: 20px;
+    right: 0px;
+    z-index: 1000;
+    background: rgba(255,255,255,0.9);
+    padding: 2px 4px;
+    border-radius: 2px;
+    font-size: 9px;
+    font-family: 'Inter', sans-serif;
+    color: #666;
+    max-width: 200px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  `;
+
+  footer.innerHTML = `
+    <span>Data: <a href="https://www.iqair.com" target="_blank" style="color: #007cba;">IQAir</a> | 
+    <a href="https://www.londonair.org.uk" target="_blank" style="color: #007cba;">LAQN</a> | 
+    <a href="#" onclick="showEPAInfo()" style="color: #007cba;">EPA calculations</a></span>
+  `;
+
+  document.getElementById("map").appendChild(footer);
+};
+
+const showEPAInfo = () => {
+  alert(`When direct PM2.5 and NO2 measurements aren't available, this app estimates them from AQI using EPA conversion formulas.
+
+Source: EPA Environmental Protection Agency Air Quality Index guidelines.`);
+};
+
+// School search functionality
 const createSchoolSearch = (schoolMarkers) => {
   // Check if mobile device
   const isMobile = window.innerWidth <= 1200;
@@ -440,6 +472,7 @@ async function fetchBatchGeoCodes() {
     // ADD: Initialize search functionality after all markers are created
     if (schoolMarkers.length > 0) {
       createSchoolSearch(schoolMarkers);
+      createFooter();
       console.log(
         `🔍 Search functionality initialized for ${schoolMarkers.length} schools`
       );
