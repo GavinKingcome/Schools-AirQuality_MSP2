@@ -75,11 +75,11 @@ const fetchAirQualityData = async (lat, lng) => {
         if (aqi <= 300) return Math.round(150.4 + (aqi - 200) * 1.0); // 150.4-250.4 µg/m³
         return Math.round(250.4 + (aqi - 300) * 1.25); // 250.4+ µg/m³
       };
-      // ADD: Function to estimate NO2 from AQI
+      // Function to estimate NO2 from AQI. Calculations from EPA (Environemntal Protection Agency)
       const estimateNO2FromAQI = (aqi) => {
         if (aqi === "N/A" || aqi === null) return "N/A";
 
-        // EPA AQI to NO2 conversion (ppb - parts per billion)
+        // EPA AQI to NO2 conversion (ppb - parts per billion).
         if (aqi <= 50) return Math.round(aqi * 1.07); // 0-53 ppb
         if (aqi <= 100) return Math.round(53 + (aqi - 50) * 0.41); // 54-100 ppb
         if (aqi <= 150) return Math.round(100 + (aqi - 100) * 1.2); // 101-360 ppb
@@ -139,6 +139,151 @@ const addSchoolWithFullAddress = (school) => {
   const fullAddress = `${school.name}, ${school.address}, ${school.postcode}, London, UK`;
   return fullAddress;
 };
+
+// ADD: School search functionality
+const createSchoolSearch = (schoolMarkers) => {
+  // Check if mobile device
+  const isMobile = window.innerWidth <= 1200;
+  console.log(
+    "📱 Mobile detected:",
+    isMobile,
+    "Screen width:",
+    window.innerWidth
+  ); // ADD DEBUG
+
+  // Create search container with responsive sizing
+  const searchContainer = document.createElement("div");
+  searchContainer.className = "school-search";
+  searchContainer.style.cssText = `
+    position: absolute;
+    top: ${isMobile ? "5px" : "10px"};
+    right: ${isMobile ? "5px" : "10px"};
+    z-index: 1000;
+    background: white;
+    padding: ${isMobile ? "6px" : "10px"};
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    min-width: ${isMobile ? "180px" : "250px"};
+    max-width: ${isMobile ? "200px" : "280px"};
+    font-family: 'Inter', sans-serif;
+  `;
+
+  // Create search input with responsive sizing
+  const searchInput = document.createElement("input");
+  searchInput.type = "text";
+  searchInput.placeholder = "Search for a school...";
+  searchInput.style.cssText = `
+    width: 100%;
+    padding: ${isMobile ? "6px" : "8px"};
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    font-size: ${isMobile ? "12px" : "14px"};
+    font-family: 'Inter', sans-serif;
+    outline: none;
+    transition: border-color 0.2s ease;
+    box-sizing: border-box;
+  `;
+
+  // Create results container with responsive sizing
+  const resultsContainer = document.createElement("div");
+  resultsContainer.style.cssText = `
+    max-height: ${isMobile ? "150px" : "200px"};
+    overflow-y: auto;
+    margin-top: 5px;
+    border-radius: 6px;
+    border: 1px solid #f0f0f0;
+    background: #fafafa;
+    display: none;
+  `;
+
+  searchContainer.appendChild(searchInput);
+  searchContainer.appendChild(resultsContainer);
+
+  // ADD to map container instead of body
+  document.getElementById("map").appendChild(searchContainer);
+
+  // Search functionality
+  searchInput.addEventListener("input", (e) => {
+    const query = e.target.value.toLowerCase();
+    console.log("🔍 Search input detected:", query);
+
+    resultsContainer.innerHTML = "";
+
+    if (query.length < 2) {
+      resultsContainer.style.display = "none";
+      return;
+    }
+
+    // Filter schools
+    const matches = schoolMarkers.filter((school) =>
+      school.name.toLowerCase().includes(query)
+    );
+
+    console.log("✅ Matches found:", matches.length);
+
+    if (matches.length > 0) {
+      resultsContainer.style.display = "block";
+    } else {
+      resultsContainer.style.display = "none";
+    }
+
+    matches.forEach((school) => {
+      console.log("🏫 Adding result:", school.name);
+
+      const resultItem = document.createElement("div");
+      resultItem.style.cssText = `
+        padding: 8px;
+        cursor: pointer;
+        border-bottom: 1px solid #eee;
+        font-size: 13px;
+        background: white;
+      `;
+      resultItem.innerHTML = `
+        <strong>${school.name}</strong><br>
+        <small>${school.address}</small>
+      `;
+
+      // REPLACE lines 242-250 with this corrected version:
+      resultItem.addEventListener("click", () => {
+        // Check if mobile device
+        const isMobile = window.innerWidth <= 1200;
+        const panOffset = isMobile ? [0, -80] : [0, -40]; // More offset on mobile
+
+        // Pan to school and open popup
+        map.setView([school.lat, school.lng], 16, {
+          // ← Added opening brace + comma
+          animate: true,
+          pan: {
+            animate: true,
+            duration: 0.5,
+          },
+        }); // ← Proper closing
+
+        // Add slight delay then apply offset
+        setTimeout(() => {
+          map.panBy(panOffset);
+          school.marker.openPopup();
+        }, 300);
+
+        // Clear search
+        searchInput.value = "";
+        resultsContainer.innerHTML = "";
+        resultsContainer.style.display = "none"; // ADD THIS
+      });
+
+      resultItem.addEventListener("mouseenter", () => {
+        resultItem.style.backgroundColor = "#f0f0f0";
+      });
+
+      resultItem.addEventListener("mouseleave", () => {
+        resultItem.style.backgroundColor = "white";
+      });
+
+      resultsContainer.appendChild(resultItem);
+    });
+  });
+};
+
 // Schools array with correct syntax
 const camberwellSchools = [
   {
@@ -186,6 +331,7 @@ const camberwellSchools = [
 // fetchBatchGeocodes (Add all school markers to the map)
 
 async function fetchBatchGeoCodes() {
+  const schoolMarkers = [];
   try {
     const batchRequests = camberwellSchools.map((school) => ({
       types: ["address"],
@@ -213,8 +359,6 @@ async function fetchBatchGeoCodes() {
       // check if geocodig was successful
       if (result.features && result.features.length > 0) {
         const feature = result.features[0];
-
-        // The coordinates might be in different locations - let's check both:
         const coords =
           feature.properties?.coordinates || feature.geometry?.coordinates;
 
@@ -227,6 +371,25 @@ async function fetchBatchGeoCodes() {
 
           if (lat && lng) {
             const marker = L.marker([lat, lng]).addTo(map);
+
+            // ADD this new click handler:
+            marker.on("click", () => {
+              const isMobile = window.innerWidth <= 1200;
+              const panOffset = isMobile ? [0, -80] : [0, -40];
+
+              setTimeout(() => {
+                map.panBy(panOffset);
+              }, 100);
+            });
+
+            // ADD: Store marker for search functionality
+            schoolMarkers.push({
+              name: school.name,
+              address: school.address,
+              lat: lat,
+              lng: lng,
+              marker: marker,
+            });
 
             // Initial popup content (no air quality data yet)
             marker.bindPopup(`
@@ -274,6 +437,13 @@ async function fetchBatchGeoCodes() {
         console.error("❌ Geocoding failed for:", school.name);
       }
     });
+    // ADD: Initialize search functionality after all markers are created
+    if (schoolMarkers.length > 0) {
+      createSchoolSearch(schoolMarkers);
+      console.log(
+        `🔍 Search functionality initialized for ${schoolMarkers.length} schools`
+      );
+    }
   } catch (err) {
     console.log(err);
   }
