@@ -1,10 +1,10 @@
 // Your Mapbox access token
 // Get API keys from config
 const MAPBOX_TOKEN = CONFIG.MAPBOX_TOKEN;
-const OPENWEATHER_API_KEY = CONFIG.OPENWEATHER_API_KEY;
+const IQAIR_API_KEY = CONFIG.IQAIR_API_KEY;
 
 // Initialize map centered on Camberwell
-const map = L.map("map").setView([51.4749, -0.0875], 15);
+const map = L.map("map").setView([51.4749, -0.0875], 14);
 
 // Add tile layer
 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
@@ -32,88 +32,118 @@ const geocodeAddress = async (address) => {
   }
 };
 
-// Fetch air quality data from OpenWeather API
+// Fetch air quality data from IQAir API
 const fetchAirQualityData = async (lat, lng) => {
-  try {
-    const response = await fetch(
-      `https://api.openweathermap.org/data/2.5/air_pollution?lat=${lat}&lon=${lng}&appid=${OPENWEATHER_API_KEY}`
-    );
-    const data = await response.json();
+  // DEBUG LINES:
+  console.log("🔍 Fetching data for:", lat, lng);
+  console.log("🔑 API Key:", IQAIR_API_KEY);
 
-    if (data && data.list && data.list[0]) {
-      const pol = data.list[0];
-      const aqiMap = {
-        1: "Good",
-        2: "Fair",
-        3: "Moderate",
-        4: "Poor",
-        5: "Very Poor",
+  try {
+    const url = `http://api.airvisual.com/v2/nearest_city?lat=${lat}&lon=${lng}&key=${IQAIR_API_KEY}`;
+    console.log("📡 API URL:", url);
+
+    const response = await fetch(url);
+    console.log("📊 Response status:", response.status);
+
+    const data = await response.json();
+    console.log("📋 Full API response:", data);
+
+    if (data && data.status === "success" && data.data) {
+      const current = data.data.current;
+
+      // Add safety checks for the data structure
+      if (!current || !current.pollution) {
+        console.log("❌ Missing pollution data in response");
+        return null;
+      }
+
+      const pollution = current.pollution;
+      const weather = current.weather;
+
+      // Define aqi first
+      const aqi = pollution.aqius || "N/A";
+
+      //function to estimate PM2.5 from AQI
+      const estimatePM25FromAQI = (aqi) => {
+        if (aqi === "N/A" || aqi === null) return "N/A";
+
+        // EPA AQI to PM2.5 conversion (approximate). Calculations from EPA (Environemntal Protection Agency)
+        if (aqi <= 50) return Math.round(aqi * 0.24); // 0-12 µg/m³
+        if (aqi <= 100) return Math.round(12 + (aqi - 50) * 0.27); // 12-35.4 µg/m³
+        if (aqi <= 150) return Math.round(35.4 + (aqi - 100) * 0.29); // 35.4-55.4 µg/m³
+        if (aqi <= 200) return Math.round(55.4 + (aqi - 150) * 0.43); // 55.4-150.4 µg/m³
+        if (aqi <= 300) return Math.round(150.4 + (aqi - 200) * 1.0); // 150.4-250.4 µg/m³
+        return Math.round(250.4 + (aqi - 300) * 1.25); // 250.4+ µg/m³
+      };
+      // ADD: Function to estimate NO2 from AQI
+      const estimateNO2FromAQI = (aqi) => {
+        if (aqi === "N/A" || aqi === null) return "N/A";
+
+        // EPA AQI to NO2 conversion (ppb - parts per billion)
+        if (aqi <= 50) return Math.round(aqi * 1.07); // 0-53 ppb
+        if (aqi <= 100) return Math.round(53 + (aqi - 50) * 0.41); // 54-100 ppb
+        if (aqi <= 150) return Math.round(100 + (aqi - 100) * 1.2); // 101-360 ppb
+        if (aqi <= 200) return Math.round(360 + (aqi - 150) * 3.68); // 361-649 ppb
+        if (aqi <= 300) return Math.round(649 + (aqi - 200) * 6.25); // 650-1249 ppb
+        return Math.round(1249 + (aqi - 300) * 6.25); // 1250+ ppb
+      };
+
+      // Update your fetchAirQualityData function:
+      const pm25 = pollution.p2 ? pollution.p2.conc : estimatePM25FromAQI(aqi);
+      const no2 = pollution.n2 ? pollution.n2.conc : estimateNO2FromAQI(aqi);
+
+      console.log("✅ Pollution data:", pollution);
+      console.log(
+        "✅ Full pollution object:",
+        JSON.stringify(pollution, null, 2)
+      );
+      console.log("✅ PM2.5 field (p2):", pollution.p2);
+      console.log("✅ Available pollution fields:", Object.keys(pollution));
+      console.log("✅ AQI:", aqi);
+
+      // ...existing code...
+
+      // IQAir uses US AQI scale (0-500)
+      const getAQIText = (aqi) => {
+        if (aqi === "N/A") return "No data";
+        if (aqi <= 50) return "Good";
+        if (aqi <= 100) return "Moderate";
+        if (aqi <= 150) return "Unhealthy for Sensitive";
+        if (aqi <= 200) return "Unhealthy";
+        if (aqi <= 300) return "Very Unhealthy";
+        return "Hazardous";
       };
 
       return {
-        aqi: pol.main.aqi,
-        aqiText: aqiMap[pol.main.aqi],
-        pm25: pol.components.pm2_5,
-        no2: pol.components.no2,
-        pm10: pol.components.pm10,
-        o3: pol.components.o3,
+        aqi: aqi,
+        aqiText: getAQIText(aqi),
+        pm25: pm25,
+        no2: no2,
+        city: data.data.city,
+        country: data.data.country,
+        temperature: weather ? weather.tp : "N/A",
+        humidity: weather ? weather.hu : "N/A",
       };
     }
+
+    console.log("❌ API response format unexpected:", data);
     return null;
   } catch (error) {
-    console.error("Air quality API error:", error);
+    console.error("IQAir API error:", error);
     return null;
   }
 };
 
-// Add school markers function with air quality integration
-const addSchoolWithFullAddress = async (school) => {
+// ADD this helper function for batch geocoding:
+const addSchoolWithFullAddress = (school) => {
   const fullAddress = `${school.name}, ${school.address}, ${school.postcode}, London, UK`;
-  const coords = await geocodeAddress(fullAddress);
-
-  if (coords) {
-    const marker = L.marker([coords.lat, coords.lng]).addTo(map);
-
-    // Initial popup content
-    marker.bindPopup(`
-      <h3>${school.name}</h3>
-      <p><strong>Address:</strong> ${school.address}</p>
-      <p><strong>Postcode:</strong> ${school.postcode}</p>
-      <p>Loading air quality data...</p>
-    `);
-
-    // Fetch and display air quality data
-    const airQuality = await fetchAirQualityData(coords.lat, coords.lng);
-
-    if (airQuality) {
-      marker.setPopupContent(`
-        <h3>${school.name}</h3>
-        <p><strong>Address:</strong> ${school.address}</p>
-        <p><strong>Postcode:</strong> ${school.postcode}</p>
-        <hr>
-        <h4>Air Quality</h4>
-        <p><strong>AQI:</strong> ${airQuality.aqi} (${airQuality.aqiText})</p>
-        <p><strong>PM2.5:</strong> ${airQuality.pm25.toFixed(1)} µg/m³</p>
-        <p><strong>PM10:</strong> ${airQuality.pm10.toFixed(1)} µg/m³</p>
-        <p><strong>NO₂:</strong> ${airQuality.no2.toFixed(1)} µg/m³</p>
-        <p><strong>O₃:</strong> ${airQuality.o3.toFixed(1)} µg/m³</p>
-      `);
-    } else {
-      marker.setPopupContent(`
-        <h3>${school.name}</h3>
-        <p><strong>Address:</strong> ${school.address}</p>
-        <p><strong>Postcode:</strong> ${school.postcode}</p>
-        <p><em>Air quality data unavailable</em></p>
-      `);
-    }
-  }
+  return fullAddress;
 };
-
-// Camberwell area nurseries with full address
+// Schools array with correct syntax
 const camberwellSchools = [
   {
     name: "Burgess Park Community Nursery",
-    address: "183 Glengall Road, Camberwell",
+    address: "183 Glengall Road",
     postcode: "SE15 6RS",
   },
   {
@@ -133,7 +163,7 @@ const camberwellSchools = [
   },
   {
     name: "The Fruit Tree Day Nursery",
-    address: "3-15 Brisbane Street",
+    address: "3 Brisbane Street, Camberwell",
     postcode: "SE5 7NL",
   },
   {
@@ -153,7 +183,100 @@ const camberwellSchools = [
   },
 ];
 
-// Add all school markers to the map
-camberwellSchools.forEach((school) => {
-  addSchoolWithFullAddress(school);
-});
+// fetchBatchGeocodes (Add all school markers to the map)
+
+async function fetchBatchGeoCodes() {
+  try {
+    const batchRequests = camberwellSchools.map((school) => ({
+      types: ["address"],
+      limit: 1,
+      q: addSchoolWithFullAddress(school),
+    }));
+    const response = await fetch(
+      `https://api.mapbox.com/search/geocode/v6/batch?access_token=${MAPBOX_TOKEN}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(batchRequests),
+      }
+    );
+    const { batch } = await response.json();
+    console.log("📋 Batch response:", batch); // DEBUG: see the response structure
+
+    batch.forEach((result, index) => {
+      console.log(`🏫 Processing school ${index}:`, result);
+
+      const school = camberwellSchools[index];
+
+      // check if geocodig was successful
+      if (result.features && result.features.length > 0) {
+        const feature = result.features[0];
+
+        // The coordinates might be in different locations - let's check both:
+        const coords =
+          feature.properties?.coordinates || feature.geometry?.coordinates;
+
+        console.log("📍 Coordinates found:", coords);
+
+        if (coords) {
+          // Handle different coordinate formats
+          const lat = coords.latitude || coords[1];
+          const lng = coords.longitude || coords[0];
+
+          if (lat && lng) {
+            const marker = L.marker([lat, lng]).addTo(map);
+
+            // Initial popup content (no air quality data yet)
+            marker.bindPopup(`
+      <h3>${school.name}</h3>
+      <p><strong>Address:</strong> ${school.address}</p>
+      <p><strong>Postcode:</strong> ${school.postcode}</p>
+      <p><em>Click to load air quality data...</em></p>
+    `);
+
+            // Fetch air quality data only when popup is opened (prevents rate limiting)
+            marker.on("popupopen", async () => {
+              const iqairData = await fetchAirQualityData(lat, lng);
+
+              // Build comprehensive popup content
+              let popupContent = `
+        <h3>${school.name}</h3>
+        <p><strong>Address:</strong> ${school.address}</p>
+        <p><strong>Postcode:</strong> ${school.postcode}</p>
+        <hr>
+      `;
+
+              // Add IQAir data (local London monitoring)
+              if (iqairData) {
+                popupContent += `
+          <h4>🌍 IQAir Global Monitoring</h4>
+          <p><strong>AQI:</strong> ${iqairData.aqi} (${iqairData.aqiText})</p>
+          <p><strong>PM2.5:</strong> ${iqairData.pm25} µg/m³</p>
+          <p><strong>NO2:</strong> ${iqairData.no2} ppb</p>
+          <p><strong>Location:</strong> ${iqairData.city}, ${iqairData.country}</p>
+          <p><strong>Temperature:</strong> ${iqairData.temperature}°C</p>
+        `;
+              } else {
+                popupContent += `<p><em>Air quality data unavailable</em></p>`;
+              }
+
+              marker.setPopupContent(popupContent);
+            });
+          } else {
+            console.error("❌ No valid coordinates for:", school.name);
+          }
+        } else {
+          console.error("❌ No coordinates found for:", school.name);
+        }
+      } else {
+        console.error("❌ Geocoding failed for:", school.name);
+      }
+    });
+  } catch (err) {
+    console.log(err);
+  }
+}
+
+fetchBatchGeoCodes();
