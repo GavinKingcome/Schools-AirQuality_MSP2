@@ -140,29 +140,17 @@ const addSchoolWithFullAddress = (school) => {
   return fullAddress;
 };
 
+// Create Footer
 const createFooter = () => {
   const footer = document.createElement("div");
-  footer.style.cssText = `
-    position: absolute;
-    bottom: 20px;
-    right: 0px;
-    z-index: 1000;
-    background: rgba(255,255,255,0.9);
-    padding: 2px 4px;
-    border-radius: 2px;
-    font-size: 9px;
-    font-family: 'Inter', sans-serif;
-    color: #666;
-    max-width: 200px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-  `;
-
+  footer.className = "map-footer";
+  
   footer.innerHTML = `
-    <span>Data: <a href="https://www.iqair.com" target="_blank" style="color: #007cba;">IQAir</a> | 
-    <a href="https://www.londonair.org.uk" target="_blank" style="color: #007cba;">LAQN</a> | 
-    <a href="#" onclick="showEPAInfo()" style="color: #007cba;">EPA calculations</a></span>
+    <span>Data: <a href="https://www.iqair.com" target="_blank">IQAir</a> | 
+    <a href="https://www.londonair.org.uk" target="_blank">LAQN</a> | 
+    <a href="#" onclick="showEPAInfo()">EPA calculations</a></span>
   `;
-
+  
   document.getElementById("map").appendChild(footer);
 };
 
@@ -172,66 +160,26 @@ const showEPAInfo = () => {
 Source: EPA Environmental Protection Agency Air Quality Index guidelines.`);
 };
 
-// School search functionality
 const createSchoolSearch = (schoolMarkers) => {
-  // Check if mobile device
   const isMobile = window.innerWidth <= 1200;
-  console.log(
-    "📱 Mobile detected:",
-    isMobile,
-    "Screen width:",
-    window.innerWidth
-  ); // ADD DEBUG
+  console.log("📱 Mobile detected:", isMobile, "Screen width:", window.innerWidth);
 
-  // Create search container with responsive sizing
+  // Create search container with CSS classes
   const searchContainer = document.createElement("div");
-  searchContainer.className = "school-search";
-  searchContainer.style.cssText = `
-    position: absolute;
-    top: ${isMobile ? "5px" : "10px"};
-    right: ${isMobile ? "5px" : "10px"};
-    z-index: 1000;
-    background: white;
-    padding: ${isMobile ? "6px" : "10px"};
-    border-radius: 5px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-    min-width: ${isMobile ? "180px" : "250px"};
-    max-width: ${isMobile ? "200px" : "280px"};
-    font-family: 'Inter', sans-serif;
-  `;
+  searchContainer.className = `school-search ${isMobile ? 'mobile' : ''}`;
 
-  // Create search input with responsive sizing
+  // Create search input with CSS classes
   const searchInput = document.createElement("input");
   searchInput.type = "text";
   searchInput.placeholder = "Search for a school...";
-  searchInput.style.cssText = `
-    width: 100%;
-    padding: ${isMobile ? "6px" : "8px"};
-    border: 1px solid #ddd;
-    border-radius: 3px;
-    font-size: ${isMobile ? "12px" : "14px"};
-    font-family: 'Inter', sans-serif;
-    outline: none;
-    transition: border-color 0.2s ease;
-    box-sizing: border-box;
-  `;
+  searchInput.className = `search-input ${isMobile ? 'mobile' : ''}`;
 
-  // Create results container with responsive sizing
+  // Create results container with CSS classes
   const resultsContainer = document.createElement("div");
-  resultsContainer.style.cssText = `
-    max-height: ${isMobile ? "150px" : "200px"};
-    overflow-y: auto;
-    margin-top: 5px;
-    border-radius: 6px;
-    border: 1px solid #f0f0f0;
-    background: #fafafa;
-    display: none;
-  `;
+  resultsContainer.className = `search-results ${isMobile ? 'mobile' : ''}`;
 
   searchContainer.appendChild(searchInput);
   searchContainer.appendChild(resultsContainer);
-
-  // ADD to map container instead of body
   document.getElementById("map").appendChild(searchContainer);
 
   // Search functionality
@@ -246,7 +194,6 @@ const createSchoolSearch = (schoolMarkers) => {
       return;
     }
 
-    // Filter schools
     const matches = schoolMarkers.filter((school) =>
       school.name.toLowerCase().includes(query)
     );
@@ -263,53 +210,34 @@ const createSchoolSearch = (schoolMarkers) => {
       console.log("🏫 Adding result:", school.name);
 
       const resultItem = document.createElement("div");
-      resultItem.style.cssText = `
-        padding: 8px;
-        cursor: pointer;
-        border-bottom: 1px solid #eee;
-        font-size: 13px;
-        background: white;
-      `;
+      resultItem.className = "result-item";
       resultItem.innerHTML = `
         <strong>${school.name}</strong><br>
         <small>${school.address}</small>
       `;
 
-      // REPLACE lines 242-250 with this corrected version:
       resultItem.addEventListener("click", () => {
-        // Check if mobile device
         const isMobile = window.innerWidth <= 1200;
-        const panOffset = isMobile ? [0, -80] : [0, -40]; // More offset on mobile
+        const panOffset = isMobile ? [0, -120] : [0, -80];
 
-        // Pan to school and open popup
         map.setView([school.lat, school.lng], 16, {
-          // ← Added opening brace + comma
           animate: true,
           pan: {
             animate: true,
             duration: 0.5,
           },
-        }); // ← Proper closing
+        });
 
-        // Add slight delay then apply offset
         setTimeout(() => {
           map.panBy(panOffset);
           school.marker.openPopup();
         }, 300);
 
-        // Clear search
         searchInput.value = "";
         resultsContainer.innerHTML = "";
-        resultsContainer.style.display = "none"; // ADD THIS
+        resultsContainer.style.display = "none";
       });
 
-      resultItem.addEventListener("mouseenter", () => {
-        resultItem.style.backgroundColor = "#f0f0f0";
-      });
-
-      resultItem.addEventListener("mouseleave", () => {
-        resultItem.style.backgroundColor = "white";
-      });
 
       resultsContainer.appendChild(resultItem);
     });
@@ -407,7 +335,7 @@ async function fetchBatchGeoCodes() {
             // ADD this new click handler:
             marker.on("click", () => {
               const isMobile = window.innerWidth <= 1200;
-              const panOffset = isMobile ? [0, -80] : [0, -40];
+              const panOffset = isMobile ? [0, -120] : [0, -80];
 
               setTimeout(() => {
                 map.panBy(panOffset);

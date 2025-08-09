@@ -18,9 +18,9 @@ header h1 {
   color: #555;
 }
 
-header h2 {
+header h4 {
   margin: 0;
-  color: #666; /* Medium grey for instructions */
+  color: #555; /* Medium grey for instructions */
   font-size: 1.3em;
   font-weight: 400;
 }
@@ -40,4 +40,91 @@ header h2 {
 .leaflet-popup-content p {
   margin: 5px 0;
   color: #666;
+}
+
+/* School Search Styling */
+.school-search {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 1000;
+  background: white;
+  padding: 10px;
+  border-radius: 5px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  min-width: 250px;
+  max-width: 280px;
+  font-family: "Inter", sans-serif;
+}
+
+.school-search.mobile {
+  top: 5px;
+  right: 5px;
+  padding: 6px;
+  min-width: 180px;
+  max-width: 200px;
+}
+
+.search-input {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 3px;
+  font-size: 14px;
+  font-family: "Inter", sans-serif;
+  outline: none;
+  transition: border-color 0.2s ease;
+  box-sizing: border-box;
+}
+
+.search-input.mobile {
+  padding: 6px;
+  font-size: 12px;
+}
+
+.search-results {
+  max-height: 200px;
+  overflow-y: auto;
+  margin-top: 5px;
+  border-radius: 6px;
+  border: 1px solid #f0f0f0;
+  background: #fafafa;
+  display: none;
+}
+
+.search-results.mobile {
+  max-height: 150px;
+}
+
+.result-item {
+  padding: 8px;
+  cursor: pointer;
+  border-bottom: 1px solid #eee;
+  font-size: 13px;
+  background: white;
+}
+
+.result-item:hover {
+  background-color: #f0f0f0;
+}
+
+/* Footer Styling */
+.map-footer {
+  position: absolute;
+  bottom: 20px;
+  right: 0px;
+  z-index: 1000;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 2px 4px;
+  border-radius: 2px;
+  font-size: 9px;
+  font-family: "Inter", sans-serif;
+  color: #666;
+  max-width: 200px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  text-align: right;
+}
+
+.map-footer a {
+  color: #007cba;
 }
