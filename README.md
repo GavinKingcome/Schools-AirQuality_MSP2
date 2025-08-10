@@ -6,7 +6,7 @@ A responsive web application that displays real-time air quality data for school
 
 ## Live Demo
 
-[View the live application](https://gavinkingcome.github.io/Schools-AirQuality_MSP2/) <
+[View the live application](https://gavinkingcome.github.io/Schools-AirQuality_MSP2/)
 
 ## Features
 
@@ -40,6 +40,12 @@ A responsive web application that displays real-time air quality data for school
   - IQAir API for air quality data
   - Mapbox Geocoding API for location services
 - **Responsive**: CSS Grid/Flexbox with mobile-first approach
+
+## Security & API Keys
+
+- The `.gitignore` file is set to ignore only `/config.js` in the project root, so you can safely commit `assets/js/config.js` for deployment.
+- Always use restricted API tokens for public repositories.
+- Never commit unrestricted or production secrets.
 
 ## Data Sources
 
@@ -176,8 +182,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ### Learning & Development
 - **Code Institute** for their comprehensive lessons and video content for the "Build an Interactive Front-End Site" module
-- **Dr Raghav Kovvuri** (HE Lecturer - Computing), University of Peterborough, for his support and encouragement
 - **Victor Miclovich** for invaluable mentorship and guidance throughout the project development
+- **Dr Raghav Kovvuri** (HE Lecturer - Computing), University of Peterborough, for his support and encouragement
 - **Perplexity.ai** for assistance with code structure and technical explanations
 - **GitHub Copilot (VS Code)** for code suggestions and syntax support
 

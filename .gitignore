@@ -139,7 +139,7 @@ vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 
 # API Keys and sensitive config
-config.js
+/config.js
 
 # macOS
 .DS_Store
