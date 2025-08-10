@@ -39,7 +39,7 @@ const fetchAirQualityData = async (lat, lng) => {
   console.log("🔑 API Key:", IQAIR_API_KEY);
 
   try {
-    const url = `http://api.airvisual.com/v2/nearest_city?lat=${lat}&lon=${lng}&key=${IQAIR_API_KEY}`;
+    const url = `https://api.airvisual.com/v2/nearest_city?lat=${lat}&lon=${lng}&key=${IQAIR_API_KEY}`;
     console.log("📡 API URL:", url);
 
     const response = await fetch(url);
@@ -144,13 +144,13 @@ const addSchoolWithFullAddress = (school) => {
 const createFooter = () => {
   const footer = document.createElement("div");
   footer.className = "map-footer";
-  
+
   footer.innerHTML = `
     <span>Data: <a href="https://www.iqair.com" target="_blank">IQAir</a> | 
     <a href="https://www.londonair.org.uk" target="_blank">LAQN</a> | 
     <a href="#" onclick="showEPAInfo()">EPA calculations</a></span>
   `;
-  
+
   document.getElementById("map").appendChild(footer);
 };
 
@@ -162,21 +162,26 @@ Source: EPA Environmental Protection Agency Air Quality Index guidelines.`);
 
 const createSchoolSearch = (schoolMarkers) => {
   const isMobile = window.innerWidth <= 1200;
-  console.log("📱 Mobile detected:", isMobile, "Screen width:", window.innerWidth);
+  console.log(
+    "📱 Mobile detected:",
+    isMobile,
+    "Screen width:",
+    window.innerWidth
+  );
 
   // Create search container with CSS classes
   const searchContainer = document.createElement("div");
-  searchContainer.className = `school-search ${isMobile ? 'mobile' : ''}`;
+  searchContainer.className = `school-search ${isMobile ? "mobile" : ""}`;
 
   // Create search input with CSS classes
   const searchInput = document.createElement("input");
   searchInput.type = "text";
   searchInput.placeholder = "Search for a school...";
-  searchInput.className = `search-input ${isMobile ? 'mobile' : ''}`;
+  searchInput.className = `search-input ${isMobile ? "mobile" : ""}`;
 
   // Create results container with CSS classes
   const resultsContainer = document.createElement("div");
-  resultsContainer.className = `search-results ${isMobile ? 'mobile' : ''}`;
+  resultsContainer.className = `search-results ${isMobile ? "mobile" : ""}`;
 
   searchContainer.appendChild(searchInput);
   searchContainer.appendChild(resultsContainer);
@@ -237,7 +242,6 @@ const createSchoolSearch = (schoolMarkers) => {
         resultsContainer.innerHTML = "";
         resultsContainer.style.display = "none";
       });
-
 
       resultsContainer.appendChild(resultItem);
     });
