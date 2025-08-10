@@ -1,4 +1,4 @@
-// DO NOT COMMIT THIS FILE
+
 const CONFIG = {
   MAPBOX_TOKEN:
     "pk.eyJ1IjoiZ2F2aW5raW5nY29tZSIsImEiOiJjbWU1ZWZvemMwb2txMnFxenlldHUzdGJ6In0.eZ51gf9rk2S5R1PYtYBlQg",
