@@ -1,6 +1,6 @@
 
 const CONFIG = {
   MAPBOX_TOKEN:
-    "pk.eyJ1IjoiZ2F2aW5raW5nY29tZSIsImEiOiJjbWU1ZWZvemMwb2txMnFxenlldHUzdGJ6In0.eZ51gf9rk2S5R1PYtYBlQg",
+    "pk.eyJ1IjoiZ2F2aW5raW5nY29tZSIsImEiOiJjbWU2cGRkaWEweTJ4Mm1zZTdyeHRzMHE3In0.z4OLNLXAzBVsu9rEqfhpzw",
   IQAIR_API_KEY: "77180b74-f460-4e5a-a864-4291f2f05616",
 };
