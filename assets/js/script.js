@@ -13,15 +13,25 @@ L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
 
 // Geocoding function
 const geocodeAddress = async (address) => {
-  const encodedAddress = encodeURIComponent(address);
-  const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodedAddress}.json?access_token=${MAPBOX_TOKEN}&limit=1`;
+  const url = `https://api.mapbox.com/search/geocode/v6/forward?access_token=${MAPBOX_TOKEN}`;
+  const body = JSON.stringify({
+    q: address,
+    limit: 1,
+    types: ["address"],
+  });
 
   try {
-    const response = await fetch(url);
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: body,
+    });
     const data = await response.json();
 
     if (data.features && data.features.length > 0) {
-      const [longitude, latitude] = data.features[0].center;
+      const [longitude, latitude] = data.features[0].geometry.coordinates;
       return { lat: latitude, lng: longitude };
     } else {
       throw new Error("No coordinates found for address");
