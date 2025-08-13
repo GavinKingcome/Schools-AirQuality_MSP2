@@ -44,26 +44,18 @@ const geocodeAddress = async (address) => {
 
 // Fetch air quality data from IQAir API
 const fetchAirQualityData = async (lat, lng) => {
-  // DEBUG LINES:
-  console.log("🔍 Fetching data for:", lat, lng);
-  console.log("🔑 API Key:", IQAIR_API_KEY);
-
   try {
     const url = `https://api.airvisual.com/v2/nearest_city?lat=${lat}&lon=${lng}&key=${IQAIR_API_KEY}`;
-    console.log("📡 API URL:", url);
 
     const response = await fetch(url);
-    console.log("📊 Response status:", response.status);
 
     const data = await response.json();
-    console.log("📋 Full API response:", data);
 
     if (data && data.status === "success" && data.data) {
       const current = data.data.current;
 
       // Add safety checks for the data structure
       if (!current || !current.pollution) {
-        console.log("❌ Missing pollution data in response");
         return null;
       }
 
@@ -102,15 +94,6 @@ const fetchAirQualityData = async (lat, lng) => {
       const pm25 = pollution.p2 ? pollution.p2.conc : estimatePM25FromAQI(aqi);
       const no2 = pollution.n2 ? pollution.n2.conc : estimateNO2FromAQI(aqi);
 
-      console.log("✅ Pollution data:", pollution);
-      console.log(
-        "✅ Full pollution object:",
-        JSON.stringify(pollution, null, 2)
-      );
-      console.log("✅ PM2.5 field (p2):", pollution.p2);
-      console.log("✅ Available pollution fields:", Object.keys(pollution));
-      console.log("✅ AQI:", aqi);
-
       // ...existing code...
 
       // IQAir uses US AQI scale (0-500)
@@ -136,10 +119,8 @@ const fetchAirQualityData = async (lat, lng) => {
       };
     }
 
-    console.log("❌ API response format unexpected:", data);
     return null;
   } catch (error) {
-    console.error("IQAir API error:", error);
     return null;
   }
 };
@@ -172,12 +153,6 @@ Source: EPA Environmental Protection Agency Air Quality Index guidelines.`);
 
 const createSchoolSearch = (schoolMarkers) => {
   const isMobile = window.innerWidth <= 1200;
-  console.log(
-    "📱 Mobile detected:",
-    isMobile,
-    "Screen width:",
-    window.innerWidth
-  );
 
   // Create search container with CSS classes
   const searchContainer = document.createElement("div");
@@ -193,44 +168,30 @@ const createSchoolSearch = (schoolMarkers) => {
   const resultsContainer = document.createElement("div");
   resultsContainer.className = `search-results ${isMobile ? "mobile" : ""}`;
 
+  // Stop Leaflet from intercepting scroll / clicks on the dropdown
+  L.DomEvent.disableScrollPropagation(resultsContainer);
+  L.DomEvent.disableClickPropagation(resultsContainer);
+
   searchContainer.appendChild(searchInput);
   searchContainer.appendChild(resultsContainer);
   document.getElementById("map").appendChild(searchContainer);
 
   // Search functionality
-  searchInput.addEventListener("input", (e) => {
-    const query = e.target.value.toLowerCase();
-    console.log("🔍 Search input detected:", query);
-
+  // Helper to show dropdown with a given list
+  function showDropdown(list) {
     resultsContainer.innerHTML = "";
-
-    if (query.length < 2) {
+    if (list.length === 0) {
       resultsContainer.style.display = "none";
       return;
     }
-
-    const matches = schoolMarkers.filter((school) =>
-      school.name.toLowerCase().includes(query)
-    );
-
-    console.log("✅ Matches found:", matches.length);
-
-    if (matches.length > 0) {
-      resultsContainer.style.display = "block";
-    } else {
-      resultsContainer.style.display = "none";
-    }
-
-    matches.forEach((school) => {
-      console.log("🏫 Adding result:", school.name);
-
+    resultsContainer.style.display = "block";
+    list.forEach((school) => {
       const resultItem = document.createElement("div");
       resultItem.className = "result-item";
       resultItem.innerHTML = `
-        <strong>${school.name}</strong><br>
-        <small>${school.address}</small>
-      `;
-
+      <strong>${school.name}</strong><br>
+      <small>${school.address}</small>
+    `;
       resultItem.addEventListener("click", () => {
         const isMobile = window.innerWidth <= 1200;
         const panOffset = isMobile ? [0, -120] : [0, -80];
@@ -252,12 +213,35 @@ const createSchoolSearch = (schoolMarkers) => {
         resultsContainer.innerHTML = "";
         resultsContainer.style.display = "none";
       });
-
       resultsContainer.appendChild(resultItem);
     });
+  }
+
+  // Show all schools when input is focused
+  searchInput.addEventListener("focus", () => {
+    showDropdown(schoolMarkers);
+  });
+
+  // Filter schools as user types
+  searchInput.addEventListener("input", (e) => {
+    const query = e.target.value.toLowerCase();
+    if (query.length === 0) {
+      showDropdown(schoolMarkers);
+      return;
+    }
+    const matches = schoolMarkers.filter((school) =>
+      school.name.toLowerCase().includes(query)
+    );
+    showDropdown(matches);
+  });
+
+  // Hide dropdown when clicking outside
+  document.addEventListener("click", (e) => {
+    if (!searchContainer.contains(e.target)) {
+      resultsContainer.style.display = "none";
+    }
   });
 };
-
 // Schools array with correct syntax
 const camberwellSchools = [
   {
@@ -323,104 +307,94 @@ async function fetchBatchGeoCodes() {
       }
     );
     const { batch } = await response.json();
-    console.log("📋 Batch response:", batch); // DEBUG: see the response structure
 
     batch.forEach((result, index) => {
-      console.log(`🏫 Processing school ${index}:`, result);
-
       const school = camberwellSchools[index];
 
-      // check if geocodig was successful
+      // check if geocoding was successful
       if (result.features && result.features.length > 0) {
         const feature = result.features[0];
         const coords =
           feature.properties?.coordinates || feature.geometry?.coordinates;
 
-        console.log("📍 Coordinates found:", coords);
+        let lat, lng;
+        if (Array.isArray(coords)) {
+          // geometry.coordinates: [lng, lat]
+          lng = coords[0];
+          lat = coords[1];
+        } else if (coords && typeof coords === "object") {
+          // properties.coordinates: { latitude, longitude }
+          lat = coords.latitude;
+          lng = coords.longitude;
+        }
 
-        if (coords) {
-          // Handle different coordinate formats
-          const lat = coords.latitude || coords[1];
-          const lng = coords.longitude || coords[0];
+        if (lat && lng) {
+          const marker = L.marker([lat, lng]).addTo(map);
 
-          if (lat && lng) {
-            const marker = L.marker([lat, lng]).addTo(map);
+          marker.on("click", () => {
+            const isMobile = window.innerWidth <= 1200;
+            const panOffset = isMobile ? [0, -120] : [0, -80];
+            setTimeout(() => {
+              map.panBy(panOffset);
+            }, 100);
+          });
 
-            // ADD this new click handler:
-            marker.on("click", () => {
-              const isMobile = window.innerWidth <= 1200;
-              const panOffset = isMobile ? [0, -120] : [0, -80];
+          // Store marker for search functionality
+          schoolMarkers.push({
+            name: school.name,
+            address: school.address,
+            lat: lat,
+            lng: lng,
+            marker: marker,
+          });
 
-              setTimeout(() => {
-                map.panBy(panOffset);
-              }, 100);
-            });
-
-            // ADD: Store marker for search functionality
-            schoolMarkers.push({
-              name: school.name,
-              address: school.address,
-              lat: lat,
-              lng: lng,
-              marker: marker,
-            });
-
-            // Initial popup content (no air quality data yet)
-            marker.bindPopup(`
-      <h3>${school.name}</h3>
-      <p><strong>Address:</strong> ${school.address}</p>
-      <p><strong>Postcode:</strong> ${school.postcode}</p>
-      <p><em>Click to load air quality data...</em></p>
-    `);
-
-            // Fetch air quality data only when popup is opened (prevents rate limiting)
-            marker.on("popupopen", async () => {
-              const iqairData = await fetchAirQualityData(lat, lng);
-
-              // Build comprehensive popup content
-              let popupContent = `
+          // Initial popup content (no air quality data yet)
+          marker.bindPopup(`
         <h3>${school.name}</h3>
         <p><strong>Address:</strong> ${school.address}</p>
         <p><strong>Postcode:</strong> ${school.postcode}</p>
-        <hr>
-      `;
+        <p><em>Click to load air quality data...</em></p>
+      `);
 
-              // Add IQAir data (local London monitoring)
-              if (iqairData) {
-                popupContent += `
-          <h4>🌍 IQAir Global Monitoring</h4>
-          <p><strong>AQI:</strong> ${iqairData.aqi} (${iqairData.aqiText})</p>
-          <p><strong>PM2.5:</strong> ${iqairData.pm25} µg/m³</p>
-          <p><strong>NO2:</strong> ${iqairData.no2} ppb</p>
-          <p><strong>Location:</strong> ${iqairData.city}, ${iqairData.country}</p>
-          <p><strong>Temperature:</strong> ${iqairData.temperature}°C</p>
+          // Fetch air quality data only when popup is opened (prevents rate limiting)
+          marker.on("popupopen", async () => {
+            const iqairData = await fetchAirQualityData(lat, lng);
+
+            // Build comprehensive popup content
+            let popupContent = `
+          <h3>${school.name}</h3>
+          <p><strong>Address:</strong> ${school.address}</p>
+          <p><strong>Postcode:</strong> ${school.postcode}</p>
+          <hr>
         `;
-              } else {
-                popupContent += `<p><em>Air quality data unavailable</em></p>`;
-              }
 
-              marker.setPopupContent(popupContent);
-            });
-          } else {
-            console.error("❌ No valid coordinates for:", school.name);
-          }
-        } else {
-          console.error("❌ No coordinates found for:", school.name);
+            // Add IQAir data (local London monitoring)
+            if (iqairData) {
+              popupContent += `
+            <h4>🌍 IQAir Global Monitoring</h4>
+            <p><strong>AQI:</strong> ${iqairData.aqi} (${iqairData.aqiText})</p>
+            <p><strong>PM2.5:</strong> ${iqairData.pm25} µg/m³</p>
+            <p><strong>NO2:</strong> ${iqairData.no2} ppb</p>
+            <p><strong>Location:</strong> ${iqairData.city}, ${iqairData.country}</p>
+            <p><strong>Temperature:</strong> ${iqairData.temperature}°C</p>
+          `;
+            } else {
+              popupContent += `<p><em>Air quality data unavailable</em></p>`;
+            }
+
+            marker.setPopupContent(popupContent);
+          });
         }
-      } else {
-        console.error("❌ Geocoding failed for:", school.name);
       }
-    });
-    // ADD: Initialize search functionality after all markers are created
+    }); // <-- closes batch.forEach
+
+    // Initialize search functionality after all markers are created
     if (schoolMarkers.length > 0) {
       createSchoolSearch(schoolMarkers);
       createFooter();
-      console.log(
-        `🔍 Search functionality initialized for ${schoolMarkers.length} schools`
-      );
     }
   } catch (err) {
-    console.log(err);
+    // TODO (implement better interface to communicate errors with users)
   }
 }
 
