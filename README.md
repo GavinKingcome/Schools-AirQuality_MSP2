@@ -1,4 +1,3 @@
-
 # MSP2 - Schools Air Quality Monitor
 
 A responsive web application that displays real-time air quality data for schools in the Camberwell area of London. The app provides interactive mapping with EPA-based air quality calculations and mobile-optimized search functionality.
@@ -59,7 +58,18 @@ A responsive web application that displays real-time air quality data for school
 
 - School names and addresses are included in the code and may also be available as a CSV file in `assets/data/school-Names-Addresses.csv` (if present).
 
-## Quick Start
+## Testing & Validation
+
+- **HTML and CSS Validation:** All markup and stylesheets were validated using the W3C Markup Validation Service and W3C CSS Validator.
+- **Functionality:** All interactive features (search, map, popups, API calls) were tested across major browsers (Chrome, Firefox, Safari, Edge) and devices.
+- **Responsive Design:** The application was tested on desktop, tablet, and mobile screen sizes using browser developer tools.
+- **Accessibility:** Keyboard navigation and color contrast were checked.  
+  Lighthouse Accessibility shows a “!” for the contrast check due to a known Leaflet/map overlay quirk; manual review confirms contrast meets WCAG AA.
+- **Performance:** Page load speed and responsiveness were checked using browser dev tools and Lighthouse.
+- **API Keys & Security:** API keys are included for functionality; no unrestricted or production secrets are committed.
+- **Final Review:** All links, navigation, and content were proofread and verified.
+
+All tests passed successfully.
 
 ### Prerequisites
 
