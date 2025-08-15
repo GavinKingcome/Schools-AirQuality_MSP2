@@ -56,7 +56,7 @@ A responsive web application that displays real-time air quality data for school
 
 ## Data Files
 
-- School names and addresses are included in the code and may also be available as a CSV file in `assets/data/school-Names-Addresses.csv` (if present).
+- School names and addresses are included in the code and may also be available as a CSV file in `assets/data/school-Names-Addresses.csv`.
 
 ## Testing & Validation
 
