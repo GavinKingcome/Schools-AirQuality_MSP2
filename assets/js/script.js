@@ -43,12 +43,12 @@ const geocodeAddress = async (address) => {
 };
 
 // Fetch air quality data from IQAir API
+// Fetch air quality data from IQAir API
 const fetchAirQualityData = async (lat, lng) => {
   try {
     const url = `https://api.airvisual.com/v2/nearest_city?lat=${lat}&lon=${lng}&key=${IQAIR_API_KEY}`;
 
     const response = await fetch(url);
-
     const data = await response.json();
 
     if (data && data.status === "success" && data.data) {
@@ -69,7 +69,7 @@ const fetchAirQualityData = async (lat, lng) => {
       const estimatePM25FromAQI = (aqi) => {
         if (aqi === "N/A" || aqi === null) return "N/A";
 
-        // EPA AQI to PM2.5 conversion (approximate). Calculations from EPA (Environemntal Protection Agency)
+        // EPA AQI to PM2.5 conversion (approximate). Calculations from EPA (Environmental Protection Agency)
         if (aqi <= 50) return Math.round(aqi * 0.24); // 0-12 µg/m³
         if (aqi <= 100) return Math.round(12 + (aqi - 50) * 0.27); // 12-35.4 µg/m³
         if (aqi <= 150) return Math.round(35.4 + (aqi - 100) * 0.29); // 35.4-55.4 µg/m³
@@ -77,7 +77,8 @@ const fetchAirQualityData = async (lat, lng) => {
         if (aqi <= 300) return Math.round(150.4 + (aqi - 200) * 1.0); // 150.4-250.4 µg/m³
         return Math.round(250.4 + (aqi - 300) * 1.25); // 250.4+ µg/m³
       };
-      // Function to estimate NO2 from AQI. Calculations from EPA (Environemntal Protection Agency)
+
+      // Function to estimate NO2 from AQI. Calculations from EPA (Environmental Protection Agency)
       const estimateNO2FromAQI = (aqi) => {
         if (aqi === "N/A" || aqi === null) return "N/A";
 
@@ -90,26 +91,25 @@ const fetchAirQualityData = async (lat, lng) => {
         return Math.round(1249 + (aqi - 300) * 6.25); // 1250+ ppb
       };
 
-      // Update your fetchAirQualityData function:
+      // Get PM2.5 and NO2 values (using actual data or estimates)
       const pm25 = pollution.p2 ? pollution.p2.conc : estimatePM25FromAQI(aqi);
       const no2 = pollution.n2 ? pollution.n2.conc : estimateNO2FromAQI(aqi);
 
-      // ...existing code...
-
       // IQAir uses US AQI scale (0-500)
+            // IQAir uses US AQI scale (0-500)
       const getAQIText = (aqi) => {
-        if (aqi === "N/A") return "No data";
-        if (aqi <= 50) return "Good";
-        if (aqi <= 100) return "Moderate";
-        if (aqi <= 150) return "Unhealthy for Sensitive";
-        if (aqi <= 200) return "Unhealthy";
-        if (aqi <= 300) return "Very Unhealthy";
-        return "Hazardous";
+        if (aqi === "N/A") return { text: "No data", class: "" };
+        if (aqi <= 50) return { text: "Good", class: "aqi-good" };
+        if (aqi <= 100) return { text: "Moderate", class: "aqi-moderate" };
+        return { text: "Unhealthy", class: "aqi-unhealthy" };
       };
+
+      const aqiStatus = getAQIText(aqi);
 
       return {
         aqi: aqi,
-        aqiText: getAQIText(aqi),
+        aqiText: aqiStatus.text,
+        aqiClass: aqiStatus.class,
         pm25: pm25,
         no2: no2,
         city: data.data.city,
@@ -352,13 +352,7 @@ async function fetchBatchGeoCodes() {
         if (lat && lng) {
           const marker = L.marker([lat, lng]).addTo(map);
 
-          marker.on("click", () => {
-            const isMobile = window.innerWidth <= 1200;
-            const panOffset = isMobile ? [0, -120] : [0, -80];
-            setTimeout(() => {
-              map.panBy(panOffset);
-            }, 100);
-          });
+          
 
           // Store marker for search functionality
           schoolMarkers.push({
@@ -393,7 +387,7 @@ async function fetchBatchGeoCodes() {
             if (iqairData) {
               popupContent += `
             <h4>🌍 IQAir Global Monitoring</h4>
-            <p><strong>AQI:</strong> ${iqairData.aqi} (${iqairData.aqiText})</p>
+            <p><strong>AQI:</strong> <span class="${iqairData.aqiClass}">${iqairData.aqi} (${iqairData.aqiText})</span></p>
             <p><strong>PM2.5:</strong> ${iqairData.pm25} µg/m³</p>
             <p><strong>NO2:</strong> ${iqairData.no2} ppb</p>
             <p><strong>Location:</strong> ${iqairData.city}, ${iqairData.country}</p>

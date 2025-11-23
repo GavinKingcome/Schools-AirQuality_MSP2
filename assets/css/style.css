@@ -119,6 +119,22 @@ header h4 {
   background-color: #f0f0f0;
 }
 
+/* AQI Status Colours */
+.aqi-good {
+  color: #00a651;
+  font-weight: bold;
+}
+
+.aqi-moderate {
+  color: #ffd700;
+  font-weight: bold;
+}
+
+.aqi-unhealthy {
+  color: #ff0000;
+  font-weight: bold;
+}
+
 /* Footer Styling */
 .map-footer {
   position: absolute;
