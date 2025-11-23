@@ -47,7 +47,7 @@ header h4 {
   position: absolute;
   top: 10px;
   right: 10px;
-  z-index: 1000;
+  z-index: 3000;
   background: white;
   padding: 10px;
   border-radius: 5px;
@@ -83,13 +83,24 @@ header h4 {
 }
 
 .search-results {
-  max-height: 200px;
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 40px;
+  /* Make the dropdown tall enough, but cap it for small screens */
+  max-height: min(50vh, 320px);
   overflow-y: auto;
-  margin-top: 5px;
+  -webkit-overflow-scrolling: touch; /* smoother scrolling on iOS */
+  margin-top: 0;
   border-radius: 6px;
   border: 1px solid #f0f0f0;
   background: #fafafa;
+  z-index: 4000; /* sit above Leaflet controls/popups */
   display: none;
+}
+
+.search-results.mobile {
+  max-height: min(50vh, 240px);
 }
 
 .search-results.mobile {
@@ -114,17 +125,22 @@ header h4 {
   bottom: 20px;
   right: 0px;
   z-index: 1000;
-  background: rgba(255, 255, 255, 0.9);
+  background: #fff;
   padding: 2px 4px;
   border-radius: 2px;
-  font-size: 9px;
+  font-size: 12px;
   font-family: "Inter", sans-serif;
   color: #666;
-  max-width: 200px;
+  max-width: none;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   text-align: right;
 }
 
-.map-footer a {
-  color: #007cba;
+.map-footer a,
+.map-footer a:visited {
+  color: #005a8c; /* darker than #007cba → ~7.4:1 on white */
+}
+:focus-visible {
+  outline: 2px solid #005a8c;
+  outline-offset: 2px;
 }
