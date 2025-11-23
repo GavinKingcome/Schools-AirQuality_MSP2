@@ -4,7 +4,8 @@ A responsive web application that displays real-time air quality data for school
 
 ## Live Demo
 
-[View the live application](https://gavinkingcome.github.io/Schools-AirQuality_MSP2/)
+<!-- Updated (opens in new tab) -->
+<a href="https://gavinkingcome.github.io/Schools-AirQuality_MSP2/" target="_blank" rel="noopener">View Live Application</a>
 
 ## Features
 
@@ -222,9 +223,9 @@ The application was designed mobile-first, then enhanced for larger screens:
 
 ## Data Sources
 
-- **[IQAir](https://www.iqair.com)**: Global air quality monitoring network
-- **[London Air Quality Network (LAQN)](https://www.londonair.org.uk)**: Environmental Research Group, Imperial College London
-- **[EPA](https://www.epa.gov)**: Environmental Protection Agency calculation standards
+- <a href="https://www.iqair.com" target="_blank" rel="noopener">IQAir</a>: Global air quality monitoring network
+- <a href="https://www.londonair.org.uk" target="_blank" rel="noopener">London Air Quality Network (LAQN)</a>: Environmental Research Group, Imperial College London
+- <a href="https://www.epa.gov" target="_blank" rel="noopener">EPA</a>: Environmental Protection Agency calculation standards
 
 ## Data Files
 
@@ -343,6 +344,169 @@ The application was designed mobile-first, then enhanced for larger screens:
    # Or simply open index.html in your browser
    ```
 
+## Deployment Guide
+
+### GitHub Pages Deployment (Recommended)
+
+#### Prerequisites
+- GitHub account
+- Repository with your code
+- API keys configured
+
+#### Steps
+
+1. **Push your code to GitHub**
+   ```bash
+   git add .
+   git commit -m "Prepare for deployment"
+   git push origin main
+   ```
+
+2. **Enable GitHub Pages**
+   - Go to your repository on GitHub
+   - Click **Settings** → **Pages**
+   - Under "Source", select **main** branch
+   - Click **Save**
+
+3. **Configure Base URL**
+   
+   Your site will be available at:
+   ```
+   https://yourusername.github.io/Schools-AirQuality_MSP2/
+   ```
+
+4. **Verify API Keys**
+   - Ensure `assets/js/config.js` contains your API keys
+   - This file should be committed (it's in public repo)
+   - Use **restricted** tokens with domain limits
+
+5. **Test Deployment**
+   - Wait 2-3 minutes for GitHub Pages to build
+   - Visit your live URL
+   - Test search functionality
+   - Click on school markers to verify air quality data loads
+
+#### Deployment Checklist
+
+- [ ] All files committed and pushed
+- [ ] `config.js` contains valid API keys
+- [ ] GitHub Pages enabled in repository settings
+- [ ] Live site accessible at GitHub Pages URL
+- [ ] Search functionality working
+- [ ] Map markers clickable
+- [ ] Air quality data loading in popups
+- [ ] Mobile responsive layout verified
+- [ ] 404 page redirects to home
+
+#### Troubleshooting Deployment
+
+| Issue | Solution |
+|-------|----------|
+| **404 errors on refresh** | Ensure `404.html` exists in root directory |
+| **Map not loading** | Check Mapbox token restrictions allow your domain |
+| **No air quality data** | Verify IQAir API key is valid and not rate-limited |
+| **CSS/JS not loading** | Check file paths are relative (no leading `/`) |
+| **GitHub Pages not building** | Check Actions tab for build errors |
+
+---
+
+### Alternative: Local Development Server
+
+#### Using Python
+```bash
+# Navigate to project directory
+cd Schools-AirQuality_MSP2
+
+# Python 3
+python -m http.server 8000
+
+# Visit: http://localhost:8000
+```
+
+#### Using Node.js
+```bash
+# Install serve globally
+npm install -g serve
+
+# Run server
+serve .
+
+# Visit: http://localhost:3000
+```
+
+#### Using VS Code Live Server
+1. Install "Live Server" extension
+2. Right-click `index.html`
+3. Select "Open with Live Server"
+
+---
+
+### Production Deployment (Advanced)
+
+For production environments with backend (future Python integration):
+
+#### Using Netlify
+```bash
+# Install Netlify CLI
+npm install -g netlify-cli
+
+# Deploy
+netlify deploy --prod
+```
+
+#### Using Vercel
+```bash
+# Install Vercel CLI
+npm install -g vercel
+
+# Deploy
+vercel --prod
+```
+
+#### Environment Variables (for future backend)
+When adding Python backend, use environment variables:
+
+```bash
+# .env file (DO NOT COMMIT)
+IQAIR_API_KEY=your_key_here
+MAPBOX_TOKEN=your_token_here
+DATABASE_URL=postgresql://...
+```
+
+---
+
+### Continuous Deployment
+
+GitHub Pages automatically redeploys when you push to `main`:
+
+```bash
+# Make changes
+git add .
+git commit -m "Update air quality calculations"
+git push origin main
+
+# GitHub Pages rebuilds automatically (2-3 minutes)
+```
+
+---
+
+### Domain Configuration (Optional)
+
+To use a custom domain:
+
+1. Add `CNAME` file to repository root:
+   ```
+   your-domain.com
+   ```
+
+2. Configure DNS with your domain provider:
+   ```
+   Type: CNAME
+   Name: www
+   Value: yourusername.github.io
+   ```
+
+3. Enable HTTPS in GitHub Pages settings
 ### API Key Setup
 
 #### IQAir API
